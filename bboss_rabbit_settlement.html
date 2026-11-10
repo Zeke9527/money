@@ -13,7 +13,7 @@
 .field{display:flex;flex-direction:column;gap:7px;margin:12px 0}.field label,.small-label{font-size:13px;color:var(--muted);font-weight:650}
 input{width:100%;border:1px solid #d9deea;border-radius:10px;padding:12px 13px;font-size:16px;color:var(--ink);background:#fff;outline:none}
 input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #315efb18}
-.item{display:grid;grid-template-columns:minmax(0,1fr) 145px 38px;gap:8px;margin:9px 0;align-items:center}.item input{min-width:0}.remove{height:42px;border:0;background:#fff0f1;color:var(--red);border-radius:10px;font-size:20px;cursor:pointer}
+.item{display:grid;grid-template-columns:minmax(0,1fr) 112px 76px 38px;gap:7px;margin:9px 0;align-items:center}.item input{min-width:0;padding:11px 9px}.remove{height:42px;border:0;background:#fff0f1;color:var(--red);border-radius:10px;font-size:20px;cursor:pointer}.item-head{display:grid;grid-template-columns:minmax(0,1fr) 112px 76px 38px;gap:7px;color:var(--muted);font-size:11px;font-weight:700;margin:8px 0 2px}.item-head span{text-align:center}
 .add{border:1px dashed #aab6d1;background:#f8f9ff;color:#315efb;border-radius:10px;padding:10px 13px;font-weight:700;cursor:pointer;margin-top:6px}
 .hint{font-size:12px;color:var(--muted);margin:8px 0 0;line-height:1.6}
 .summary{background:#f8faff;border:1px solid #e1e8ff;border-radius:14px;padding:16px}
@@ -23,7 +23,7 @@ input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #315efb18}
 .pill{display:inline-block;border-radius:99px;padding:6px 10px;font-weight:750;font-size:13px;background:#d9f7e9;color:#086344}.negative .pill{background:#ffe0e3;color:#a32135}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.actions button{border:0;border-radius:11px;padding:12px 16px;font-weight:750;cursor:pointer}.primary{background:var(--blue);color:#fff}.secondary{background:#edf0f6;color:#344054}
 .note{font-size:12px;color:var(--muted);line-height:1.65;margin-top:14px}
-@media(max-width:650px){.wrap{margin:18px auto}.grid{grid-template-columns:1fr}.full{grid-column:auto}.hero{padding:23px 21px}.card{padding:17px}.item{grid-template-columns:minmax(0,1fr) 110px 34px}.item input{padding:10px;font-size:14px}}
+@media(max-width:650px){.wrap{margin:18px auto}.grid{grid-template-columns:1fr}.full{grid-column:auto}.hero{padding:23px 21px}.card{padding:17px}.item,.item-head{grid-template-columns:minmax(0,1fr) 88px 58px 30px;gap:5px}.item input{padding:10px 6px;font-size:13px}.item-head{font-size:10px}}
 @media print{body{background:#fff}.wrap{margin:0;max-width:none}.hero{background:#fff;color:#172033;box-shadow:none;border:1px solid #ddd}.hero p{color:#555}.tag{border-color:#bbb}.actions,.add,.remove{display:none!important}.card{box-shadow:none;break-inside:avoid}}
 </style>
 </head>
@@ -38,6 +38,7 @@ input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #315efb18}
   <main class="grid">
     <section class="card">
       <h2>01　bboss 提供的獎品</h2>
+      <div class="item-head"><span>獎品名稱</span><span>單位成本</span><span>數量</span><span></span></div>
       <div id="bbossItems"></div>
       <button class="add" type="button" onclick="addItem('bbossItems')">＋ 新增 bboss 獎品</button>
       <div class="field">
@@ -49,9 +50,10 @@ input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #315efb18}
 
     <section class="card">
       <h2>02　野兔提供的獎品</h2>
+      <div class="item-head"><span>獎品名稱</span><span>單位成本</span><span>數量</span><span></span></div>
       <div id="rabbitItems"></div>
       <button class="add" type="button" onclick="addItem('rabbitItems')">＋ 新增野兔獎品</button>
-      <p class="hint">請輸入各項獎品的成本金額；可新增多筆，系統會自動加總。</p>
+      <p class="hint">請輸入各項獎品的單位成本與數量，系統會自動計算「單位成本 × 數量」並加總。</p>
     </section>
 
     <section class="card full">
@@ -86,7 +88,7 @@ input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #315efb18}
         <button class="secondary" type="button" onclick="resetAll()">清空重算</button>
       </div>
       <p class="note">
-        計算方式：bboss 成本＝bboss 獎品成本＋公抽數量 × 50；總損益＝收款－雙方總成本。<br>
+        計算方式：雙方獎品成本均以各項「單位成本 × 數量」加總；bboss 成本再加上公抽數量 × 50；總損益＝收款－雙方總成本。<br>
         野兔應收款＝（收款－bboss 總成本＋野兔成本）÷ 2。若結果為負數，代表野兔需補差額給 bboss。<br>
         此結算假設雙方各自負擔所提供獎品成本，並平均分配最終利潤或虧損。
       </p>
@@ -95,24 +97,28 @@ input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #315efb18}
 </div>
 <script>
 const money = n => 'NT$' + Math.round(n).toLocaleString('zh-TW');
-function addItem(containerId, name='', cost='') {
+function addItem(containerId, name='', cost='', quantity='1') {
   const container = document.getElementById(containerId);
   const row = document.createElement('div');
   row.className = 'item';
   row.innerHTML = '<input type="text" aria-label="獎品名稱" placeholder="獎品名稱" value="">'
-    + '<input type="number" aria-label="獎品成本" placeholder="成本金額" min="0" step="1" inputmode="decimal" value="">'
+    + '<input type="number" aria-label="單位成本" placeholder="單位成本" min="0" step="1" inputmode="decimal" value="">'
+    + '<input type="number" aria-label="數量" placeholder="數量" min="0" step="1" inputmode="numeric" value="1">'
     + '<button class="remove" type="button" aria-label="刪除此獎品">×</button>';
   row.children[0].value = name;
   row.children[1].value = cost;
-  row.children[0].addEventListener('input', calculate);
-  row.children[1].addEventListener('input', calculate);
-  row.children[2].addEventListener('click', () => { row.remove(); calculate(); });
+  row.children[2].value = quantity;
+  row.querySelectorAll('input').forEach(input => input.addEventListener('input', calculate));
+  row.children[3].addEventListener('click', () => { row.remove(); calculate(); });
   container.appendChild(row);
   calculate();
 }
 function sumItems(id) {
-  return [...document.querySelectorAll('#'+id+' .item input[type="number"]')]
-    .reduce((sum, input) => sum + Math.max(0, Number(input.value) || 0), 0);
+  return [...document.querySelectorAll('#'+id+' .item')].reduce((sum, row) => {
+    const unitCost = Math.max(0, Number(row.children[1].value) || 0);
+    const quantity = Math.max(0, Number(row.children[2].value) || 0);
+    return sum + unitCost * quantity;
+  }, 0);
 }
 function calculate() {
   const bbossPrize = sumItems('bbossItems');
