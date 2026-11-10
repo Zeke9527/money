@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bboss × 野兔｜娃娃機合夥結算</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#172033;--muted:#667085;--line:#e7eaf1;--blue:#315efb;--green:#087a55;--red:#c0394b;--soft:#eef2ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}
+.wrap{max-width:900px;margin:36px auto;padding:0 18px 48px}.hero{background:linear-gradient(135deg,#172554,#315efb);color:#fff;border-radius:22px;padding:28px 30px;margin-bottom:20px;box-shadow:0 12px 30px #233b8c22}
+.hero h1{margin:0 0 7px;font-size:clamp(25px,5vw,34px)}.hero p{margin:0;color:#dbe5ff}.tag{display:inline-block;margin-top:16px;padding:6px 11px;border:1px solid #ffffff55;border-radius:99px;font-size:13px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 4px 14px #18294a08}.card h2{font-size:18px;margin:0 0 16px}.full{grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:7px;margin:12px 0}.field label,.small-label{font-size:13px;color:var(--muted);font-weight:650}
+input{width:100%;border:1px solid #d9deea;border-radius:10px;padding:12px 13px;font-size:16px;color:var(--ink);background:#fff;outline:none}
+input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #315efb18}
+.item{display:grid;grid-template-columns:minmax(0,1fr) 145px 38px;gap:8px;margin:9px 0;align-items:center}.item input{min-width:0}.remove{height:42px;border:0;background:#fff0f1;color:var(--red);border-radius:10px;font-size:20px;cursor:pointer}
+.add{border:1px dashed #aab6d1;background:#f8f9ff;color:#315efb;border-radius:10px;padding:10px 13px;font-weight:700;cursor:pointer;margin-top:6px}
+.hint{font-size:12px;color:var(--muted);margin:8px 0 0;line-height:1.6}
+.summary{background:#f8faff;border:1px solid #e1e8ff;border-radius:14px;padding:16px}
+.line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}.line:last-child{border:0}.line span{color:var(--muted)}.line strong{font-variant-numeric:tabular-nums}
+.result{margin-top:15px;padding:20px;border-radius:15px;background:#f0fdf7;border:1px solid #c9f0df}.result.negative{background:#fff4f4;border-color:#f4d0d5}
+.result .caption{font-size:13px;color:var(--muted)}.amount{font-size:clamp(30px,7vw,42px);font-weight:850;letter-spacing:-1px;margin:5px 0}.result.positive .amount{color:var(--green)}.result.negative .amount{color:var(--red)}
+.pill{display:inline-block;border-radius:99px;padding:6px 10px;font-weight:750;font-size:13px;background:#d9f7e9;color:#086344}.negative .pill{background:#ffe0e3;color:#a32135}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.actions button{border:0;border-radius:11px;padding:12px 16px;font-weight:750;cursor:pointer}.primary{background:var(--blue);color:#fff}.secondary{background:#edf0f6;color:#344054}
+.note{font-size:12px;color:var(--muted);line-height:1.65;margin-top:14px}
+@media(max-width:650px){.wrap{margin:18px auto}.grid{grid-template-columns:1fr}.full{grid-column:auto}.hero{padding:23px 21px}.card{padding:17px}.item{grid-template-columns:minmax(0,1fr) 110px 34px}.item input{padding:10px;font-size:14px}}
+@media print{body{background:#fff}.wrap{margin:0;max-width:none}.hero{background:#fff;color:#172033;box-shadow:none;border:1px solid #ddd}.hero p{color:#555}.tag{border-color:#bbb}.actions,.add,.remove{display:none!important}.card{box-shadow:none;break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <h1>bboss × 野兔</h1>
+    <p>娃娃機合夥損益結算</p>
+    <span class="tag">bboss 負責收款｜雙方利潤均分｜公抽每抽 NT$50</span>
+  </header>
+
+  <main class="grid">
+    <section class="card">
+      <h2>01　bboss 提供的獎品</h2>
+      <div id="bbossItems"></div>
+      <button class="add" type="button" onclick="addItem('bbossItems')">＋ 新增 bboss 獎品</button>
+      <div class="field">
+        <label for="publicCount">bboss 提供的公抽數量（抽）</label>
+        <input id="publicCount" type="number" min="0" step="1" value="0" inputmode="numeric">
+      </div>
+      <p class="hint">公抽成本固定每抽 NT$50，會自動計入 bboss 成本。</p>
+    </section>
+
+    <section class="card">
+      <h2>02　野兔提供的獎品</h2>
+      <div id="rabbitItems"></div>
+      <button class="add" type="button" onclick="addItem('rabbitItems')">＋ 新增野兔獎品</button>
+      <p class="hint">請輸入各項獎品的成本金額；可新增多筆，系統會自動加總。</p>
+    </section>
+
+    <section class="card full">
+      <h2>03　營業收款</h2>
+      <div class="field">
+        <label for="revenue">最後收取金額（NT$）</label>
+        <input id="revenue" type="number" min="0" step="1" value="0" inputmode="decimal">
+      </div>
+    </section>
+
+    <section class="card full">
+      <h2>04　自動結算結果</h2>
+      <div class="summary">
+        <div class="line"><span>bboss 獎品成本</span><strong id="bbossPrizeTotal">NT$0</strong></div>
+        <div class="line"><span>公抽成本（抽數 × NT$50）</span><strong id="publicTotal">NT$0</strong></div>
+        <div class="line"><span>bboss 總成本（獎品＋公抽）</span><strong id="bbossTotal">NT$0</strong></div>
+        <div class="line"><span>野兔獎品成本</span><strong id="rabbitTotal">NT$0</strong></div>
+        <div class="line"><span>雙方總成本</span><strong id="allCost">NT$0</strong></div>
+        <div class="line"><span>最後收取金額</span><strong id="revenueTotal">NT$0</strong></div>
+        <div class="line"><span>合夥總利潤／損益</span><strong id="profit">NT$0</strong></div>
+        <div class="line"><span>每人分配利潤／損益</span><strong id="share">NT$0</strong></div>
+      </div>
+      <div class="result positive" id="settlementBox" aria-live="polite">
+        <div class="caption">最終結算金額</div>
+        <div class="amount" id="settlementAmount">NT$0</div>
+        <span class="pill" id="settlementDirection">bboss 須轉給野兔</span>
+        <p class="note" id="settlementExplain">bboss 收款後，依雙方成本及利潤均分計算應轉帳金額。</p>
+      </div>
+      <div class="actions">
+        <button class="primary" type="button" onclick="window.print()">列印／另存 PDF</button>
+        <button class="secondary" type="button" onclick="copySummary()">複製結算結果</button>
+        <button class="secondary" type="button" onclick="resetAll()">清空重算</button>
+      </div>
+      <p class="note">
+        計算方式：bboss 成本＝bboss 獎品成本＋公抽數量 × 50；總損益＝收款－雙方總成本。<br>
+        野兔應收款＝（收款－bboss 總成本＋野兔成本）÷ 2。若結果為負數，代表野兔需補差額給 bboss。<br>
+        此結算假設雙方各自負擔所提供獎品成本，並平均分配最終利潤或虧損。
+      </p>
+    </section>
+  </main>
+</div>
+<script>
+const money = n => 'NT$' + Math.round(n).toLocaleString('zh-TW');
+function addItem(containerId, name='', cost='') {
+  const container = document.getElementById(containerId);
+  const row = document.createElement('div');
+  row.className = 'item';
+  row.innerHTML = '<input type="text" aria-label="獎品名稱" placeholder="獎品名稱" value="">'
+    + '<input type="number" aria-label="獎品成本" placeholder="成本金額" min="0" step="1" inputmode="decimal" value="">'
+    + '<button class="remove" type="button" aria-label="刪除此獎品">×</button>';
+  row.children[0].value = name;
+  row.children[1].value = cost;
+  row.children[0].addEventListener('input', calculate);
+  row.children[1].addEventListener('input', calculate);
+  row.children[2].addEventListener('click', () => { row.remove(); calculate(); });
+  container.appendChild(row);
+  calculate();
+}
+function sumItems(id) {
+  return [...document.querySelectorAll('#'+id+' .item input[type="number"]')]
+    .reduce((sum, input) => sum + Math.max(0, Number(input.value) || 0), 0);
+}
+function calculate() {
+  const bbossPrize = sumItems('bbossItems');
+  const rabbitCost = sumItems('rabbitItems');
+  const count = Math.max(0, Math.floor(Number(document.getElementById('publicCount').value) || 0));
+  const publicCost = count * 50;
+  const bbossCost = bbossPrize + publicCost;
+  const revenue = Math.max(0, Number(document.getElementById('revenue').value) || 0);
+  const allCost = bbossCost + rabbitCost;
+  const profit = revenue - allCost;
+  const share = profit / 2;
+  const rabbitSettlement = (revenue - bbossCost + rabbitCost) / 2;
+  const put = (id, value) => document.getElementById(id).textContent = money(value);
+  put('bbossPrizeTotal', bbossPrize);
+  put('publicTotal', publicCost);
+  put('bbossTotal', bbossCost);
+  put('rabbitTotal', rabbitCost);
+  put('allCost', allCost);
+  put('revenueTotal', revenue);
+  put('profit', profit);
+  put('share', share);
+  const box = document.getElementById('settlementBox');
+  box.className = 'result ' + (rabbitSettlement >= 0 ? 'positive' : 'negative');
+  put('settlementAmount', Math.abs(rabbitSettlement));
+  document.getElementById('settlementDirection').textContent =
+    rabbitSettlement >= 0 ? 'bboss 須轉給野兔' : '野兔需補差額給 bboss';
+  document.getElementById('settlementExplain').textContent =
+    rabbitSettlement >= 0
+      ? 'bboss 收取全部款項後，應轉給野兔上述金額。'
+      : '結算後野兔應補給 bboss 上述金額。';
+}
+function summaryText() {
+  const ids = ['bbossPrizeTotal','publicTotal','bbossTotal','rabbitTotal','allCost','revenueTotal','profit','share','settlementAmount','settlementDirection'];
+  const labels = ['bboss 獎品成本','公抽成本','bboss 總成本','野兔獎品成本','雙方總成本','最後收取金額','合夥總利潤／損益','每人分配利潤／損益','最終結算金額','結算方向'];
+  return 'bboss × 野兔 娃娃機合夥結算\n' + labels.map((l,i)=>l+'：'+document.getElementById(ids[i]).textContent).join('\n')
+    + '\n公抽數量：'+document.getElementById('publicCount').value+' 抽（每抽 NT$50）';
+}
+async function copySummary() {
+  const text = summaryText();
+  try { await navigator.clipboard.writeText(text); alert('結算結果已複製'); }
+  catch(e) { window.prompt('請複製以下結算結果：', text); }
+}
+function resetAll() {
+  if (!confirm('確定清空所有資料並重新結算？')) return;
+  document.getElementById('bbossItems').innerHTML='';
+  document.getElementById('rabbitItems').innerHTML='';
+  document.getElementById('publicCount').value=0;
+  document.getElementById('revenue').value=0;
+  addItem('bbossItems'); addItem('rabbitItems'); calculate();
+}
+document.getElementById('publicCount').addEventListener('input', calculate);
+document.getElementById('revenue').addEventListener('input', calculate);
+addItem('bbossItems'); addItem('rabbitItems');
+</script>
+</body>
+</html>
